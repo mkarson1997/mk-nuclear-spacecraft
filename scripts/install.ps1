@@ -60,5 +60,8 @@ Write-Host 'Available commands:' -ForegroundColor Cyan
 Write-Host '  mk-status'
 Write-Host '  mk-start-task <feature|fix|chore|docs|agent|bootstrap> <name>'
 Write-Host '  mk-security <quick|full|nuclear>'
+Write-Host '  mk-agent-status'
+Write-Host '  mk-route <simple|normal|power|nuclear>'
+Write-Host '  mk-worktree <status|create|remove> ...'
 Write-Host '  mk-checkpoint "message"'
 Write-Host "`nProfile: $profilePath"

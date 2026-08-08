@@ -15,6 +15,18 @@ function Get-MKSpacecraftRoot {
     return (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 }
 
+function Get-MKAgentScript {
+    param([Parameter(Mandatory=$true)][string]$Name)
+
+    $spacecraftRoot = Get-MKSpacecraftRoot
+    $agentsDir = Join-Path (Join-Path $spacecraftRoot 'scripts') 'agents'
+    $script = Join-Path $agentsDir $Name
+    if (-not (Test-Path $script -PathType Leaf)) {
+        throw "Agent control script not found: $script"
+    }
+    return $script
+}
+
 function mk-status {
     Assert-MKGitRepo
 
@@ -100,7 +112,7 @@ function mk-security {
     Assert-MKGitRepo
 
     $spacecraftRoot = Get-MKSpacecraftRoot
-    $runner = Join-Path $spacecraftRoot 'scripts\security\run-security.ps1'
+    $runner = Join-Path (Join-Path (Join-Path $spacecraftRoot 'scripts') 'security') 'run-security.ps1'
     if (-not (Test-Path $runner)) {
         throw "Security runner not found: $runner"
     }
@@ -109,6 +121,72 @@ function mk-security {
     & $runner -Mode $Mode -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) {
         throw "mk-security $Mode failed."
+    }
+}
+
+function mk-agent-status {
+    $runner = Get-MKAgentScript 'agent-fleet.ps1'
+    & $runner status
+    if (-not $?) {
+        throw 'Agent fleet status failed.'
+    }
+}
+
+function mk-route {
+    param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [ValidateSet('simple','normal','power','nuclear')]
+        [string]$Mode
+    )
+
+    $runner = Get-MKAgentScript 'agent-fleet.ps1'
+    & $runner route $Mode
+    if (-not $?) {
+        throw "Agent route generation failed for mode: $Mode"
+    }
+}
+
+function mk-worktree {
+    param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [ValidateSet('status','create','remove')]
+        [string]$Action,
+
+        [Parameter(Position=1)]
+        [string]$Name,
+
+        [Parameter(Position=2)]
+        [string]$Engine = 'codex-cli',
+
+        [Parameter(Position=3)]
+        [string]$Role = 'implementer',
+
+        [switch]$ConfirmRemove
+    )
+
+    Assert-MKGitRepo
+    $runner = Get-MKAgentScript 'worktree-manager.ps1'
+
+    switch ($Action) {
+        'status' {
+            & $runner status
+        }
+        'create' {
+            if (-not $Name) { throw 'Name is required for mk-worktree create.' }
+            & $runner create $Name $Engine $Role
+        }
+        'remove' {
+            if (-not $Name) { throw 'Name is required for mk-worktree remove.' }
+            if ($ConfirmRemove) {
+                & $runner remove $Name -ConfirmRemove
+            } else {
+                & $runner remove $Name
+            }
+        }
+    }
+
+    if (-not $?) {
+        throw "Agent worktree action failed: $Action"
     }
 }
 
@@ -132,7 +210,7 @@ function mk-checkpoint {
     }
 
     $root = (git rev-parse --show-toplevel).Trim()
-    $verify = Join-Path $root 'scripts\verify.ps1'
+    $verify = Join-Path (Join-Path $root 'scripts') 'verify.ps1'
 
     if (Test-Path $verify) {
         Write-Host '[MK] Running project verification...' -ForegroundColor Cyan
@@ -164,7 +242,7 @@ function mk-checkpoint {
     }
 
     $spacecraftRoot = Get-MKSpacecraftRoot
-    $secretGate = Join-Path $spacecraftRoot 'scripts\security\check-staged-secrets.ps1'
+    $secretGate = Join-Path (Join-Path (Join-Path $spacecraftRoot 'scripts') 'security') 'check-staged-secrets.ps1'
     if (Test-Path $secretGate) {
         try {
             & $secretGate -RepositoryRoot $root
@@ -194,4 +272,4 @@ function mk-checkpoint {
     git log -1 --oneline
 }
 
-Export-ModuleMember -Function mk-status, mk-start-task, mk-security, mk-checkpoint
+Export-ModuleMember -Function mk-status, mk-start-task, mk-security, mk-agent-status, mk-route, mk-worktree, mk-checkpoint

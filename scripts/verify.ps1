@@ -8,15 +8,20 @@ if ($LASTEXITCODE -ne 0 -or -not $root) {
 
 $requiredFiles = @(
     'AGENTS.md',
+    'agents/FLEET.md',
     'registry/tools.yaml',
     'registry/skills.yaml',
     'registry/agents.yaml',
+    'registry/agent-fleet.json',
     'registry/services.yaml',
     'registry/security-lock.json',
     'policies/security/BASELINE.md',
     'policies/cloud/WORKSPACE.md',
     'scripts/MK.Spacecraft.psm1',
     'scripts/install.ps1',
+    'scripts/agents/agent-fleet.ps1',
+    'scripts/agents/worktree-manager.ps1',
+    'scripts/agents/agent-launcher.ps1',
     'scripts/security/run-security.ps1',
     'scripts/security/check-staged-secrets.ps1',
     'scripts/security/install-security-tools.ps1'
@@ -73,6 +78,39 @@ if (-not $lock.bootstrap.pipx.version) {
     throw 'pipx bootstrap dependency is not version-pinned.'
 }
 Write-Host '[OK] Security lock schema and pinned versions validated.' -ForegroundColor Green
+
+$fleetPath = Join-Path $root 'registry/agent-fleet.json'
+$fleet = Get-Content $fleetPath -Raw | ConvertFrom-Json
+if ($fleet.schema -ne 1) {
+    throw "Unsupported agent-fleet schema: $($fleet.schema)"
+}
+if (-not $fleet.fleet_version) {
+    throw 'Agent fleet version is missing.'
+}
+if ($fleet.policy.project_execution_enabled -ne $false) {
+    throw 'Project execution must remain disabled during Agent Fleet qualification.'
+}
+
+$expectedEngines = @('claude-code','codex-cli','antigravity-cli','opencode','grok-cli','aider')
+foreach ($engineName in $expectedEngines) {
+    $engine = $fleet.engines.PSObject.Properties[$engineName]
+    if (-not $engine -or -not $engine.Value.command) {
+        throw "Agent fleet engine is missing or invalid: $engineName"
+    }
+}
+
+$expectedModes = @('simple','normal','power','nuclear')
+foreach ($mode in $expectedModes) {
+    $route = $fleet.routing.PSObject.Properties[$mode]
+    $ceiling = $fleet.policy.max_agents.$mode
+    if (-not $route -or -not $route.Value.slots -or -not $ceiling) {
+        throw "Agent route is incomplete: $mode"
+    }
+    if (@($route.Value.slots).Count -gt [int]$ceiling) {
+        throw "Agent route exceeds configured ceiling: $mode"
+    }
+}
+Write-Host '[OK] Agent fleet registry and qualification guard validated.' -ForegroundColor Green
 
 git diff --check
 if ($LASTEXITCODE -ne 0) {

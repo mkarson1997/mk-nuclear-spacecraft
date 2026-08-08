@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "fleet_version": "0.1.0",
+  "policy": {
+    "project_execution_enabled": false,
+    "require_clean_git_for_writers": true,
+    "concurrent_writers_require_worktrees": true,
+    "one_coordinator_integrates_results": true,
+    "independent_security_review": true,
+    "max_agents": {
+      "simple": 2,
+      "normal": 5,
+      "power": 10,
+      "nuclear": 25
+    }
+  },
+  "engines": {
+    "claude-code": {
+      "command": "claude",
+      "version_args": ["--version"],
+      "class": "CORE",
+      "default_write": false,
+      "roles": ["commander", "planner", "architect", "reviewer"]
+    },
+    "codex-cli": {
+      "command": "codex",
+      "version_args": ["--version"],
+      "class": "CORE",
+      "default_write": true,
+      "roles": ["implementer", "reviewer", "test-engineer"]
+    },
+    "antigravity-cli": {
+      "command": "agy",
+      "version_args": ["--version"],
+      "class": "RECOMMENDED",
+      "default_write": false,
+      "roles": ["orchestrator", "parallel-coordinator"]
+    },
+    "opencode": {
+      "command": "opencode",
+      "version_args": ["--version"],
+      "class": "RECOMMENDED",
+      "default_write": true,
+      "roles": ["worker", "fallback-worker"]
+    },
+    "grok-cli": {
+      "command": "grok",
+      "version_args": ["--version"],
+      "class": "OPTIONAL",
+      "default_write": false,
+      "roles": ["researcher", "independent-reviewer"]
+    },
+    "aider": {
+      "command": "aider",
+      "version_args": ["--version"],
+      "class": "OPTIONAL",
+      "default_write": true,
+      "roles": ["git-worker", "reserve-implementer"]
+    }
+  },
+  "routing": {
+    "simple": {
+      "description": "Small bounded task with minimal coordination.",
+      "slots": [
+        {"engine": "codex-cli", "role": "implementer", "required": true},
+        {"engine": "grok-cli", "role": "independent-reviewer", "required": false}
+      ]
+    },
+    "normal": {
+      "description": "Standard engineering task requiring planning, implementation, review, and verification.",
+      "slots": [
+        {"engine": "claude-code", "role": "planner", "required": true},
+        {"engine": "codex-cli", "role": "implementer", "required": true},
+        {"engine": "grok-cli", "role": "independent-reviewer", "required": true},
+        {"engine": "codex-cli", "role": "test-engineer", "required": true}
+      ]
+    },
+    "power": {
+      "description": "Large multi-part task with explicit orchestration and multiple implementation/review lanes.",
+      "slots": [
+        {"engine": "claude-code", "role": "commander", "required": true},
+        {"engine": "antigravity-cli", "role": "orchestrator", "required": true},
+        {"engine": "codex-cli", "role": "implementer", "required": true},
+        {"engine": "opencode", "role": "worker", "required": true},
+        {"engine": "aider", "role": "reserve-implementer", "required": false},
+        {"engine": "grok-cli", "role": "independent-reviewer", "required": true},
+        {"engine": "codex-cli", "role": "test-engineer", "required": true}
+      ]
+    },
+    "nuclear": {
+      "description": "Huge divisible work graph. Expand only independent work packages and never exceed the configured ceiling.",
+      "slots": [
+        {"engine": "claude-code", "role": "commander", "required": true},
+        {"engine": "antigravity-cli", "role": "parallel-coordinator", "required": true},
+        {"engine": "codex-cli", "role": "implementer", "required": true},
+        {"engine": "opencode", "role": "worker", "required": true},
+        {"engine": "aider", "role": "git-worker", "required": false},
+        {"engine": "grok-cli", "role": "independent-reviewer", "required": true},
+        {"engine": "codex-cli", "role": "test-engineer", "required": true},
+        {"engine": "claude-code", "role": "architect", "required": true}
+      ]
+    }
+  }
+}
