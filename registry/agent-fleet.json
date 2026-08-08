@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "fleet_version": "0.1.0",
+  "fleet_version": "0.2.0",
   "policy": {
     "project_execution_enabled": false,
     "require_clean_git_for_writers": true,
@@ -57,6 +57,22 @@
       "default_write": true,
       "roles": ["git-worker", "reserve-implementer"]
     }
+  },
+  "roles": {
+    "commander": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "planner": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "architect": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "reviewer": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "implementer": {"write_repository": true, "isolated_worktree": true, "production_access": false},
+    "test-engineer": {"write_repository": true, "isolated_worktree": true, "production_access": false},
+    "orchestrator": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "parallel-coordinator": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "worker": {"write_repository": true, "isolated_worktree": true, "production_access": false},
+    "fallback-worker": {"write_repository": true, "isolated_worktree": true, "production_access": false},
+    "researcher": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "independent-reviewer": {"write_repository": false, "isolated_worktree": false, "production_access": false},
+    "git-worker": {"write_repository": true, "isolated_worktree": true, "production_access": false},
+    "reserve-implementer": {"write_repository": true, "isolated_worktree": true, "production_access": false}
   },
   "routing": {
     "simple": {

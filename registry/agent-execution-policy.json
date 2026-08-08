@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "policy_version": "0.1.0",
+  "project_writer_execution_enabled": false,
+  "writer_qualification_enabled": false,
+  "trusted_runtime": {
+    "install_from_branch": "main",
+    "require_clean_source": true,
+    "require_head_equal_origin": true,
+    "require_remote_main_match": true,
+    "runtime_name": "writer-core",
+    "required_command_type": "Application",
+    "required_executable_extension": ".exe"
+  },
+  "writer": {
+    "qualification_engine": "codex-cli",
+    "qualification_role": "implementer",
+    "required_branch_prefix": "agent-work/",
+    "forbidden_branches": ["main", "master"],
+    "sandbox_mode": "workspace-write",
+    "allow_commit": false,
+    "allow_push": false,
+    "production_access": false,
+    "require_active_lease": true,
+    "require_clean_coordinator": true,
+    "require_clean_worktree": true,
+    "allowed_qualification_paths": [
+      "qualification/agent-canary/writer-output.txt"
+    ]
+  },
+  "protected_refs": [
+    "refs/heads/main",
+    "refs/heads/master",
+    "refs/remotes/origin/main",
+    "refs/remotes/origin/master"
+  ]
+}

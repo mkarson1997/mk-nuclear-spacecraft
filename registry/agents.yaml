@@ -1,47 +1,10 @@
 schema: 1
+authority: registry/agent-fleet.json
+deprecated: true
 
-agents:
-
-  planner:
-    write_repository: false
-    production_access: false
-    purpose: architecture-and-task-planning
-
-  implementer:
-    write_repository: true
-    isolated_worktree: true
-    production_access: false
-    purpose: implementation
-
-  reviewer:
-    write_repository: false
-    production_access: false
-    purpose: independent-diff-review
-
-  security-auditor:
-    write_repository: false
-    scanner_access: true
-    secret_access: false
-    production_access: false
-    purpose: security-findings
-
-  test-engineer:
-    write_repository: true
-    isolated_worktree: true
-    production_access: false
-    purpose: automated-testing
-
-  release-engineer:
-    write_repository: true
-    production_access: approval-required
-    purpose: controlled-release
-
-  researcher:
-    write_repository: false
-    production_access: false
-    purpose: documentation-and-technical-research
-
-rules:
-  concurrent_writers_require_worktrees: true
-  one_coordinator_integrates_results: true
-  security_reviewer_should_be_independent: true
+note: >-
+  Agent roles, engine-role compatibility, write permissions, isolated-worktree
+  requirements, and production-access policy are authoritative only in
+  registry/agent-fleet.json. This compatibility marker remains temporarily so
+  older tooling fails toward the canonical registry instead of maintaining a
+  second role schema.
