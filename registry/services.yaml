@@ -1,0 +1,39 @@
+schema: 1
+
+services:
+
+  github:
+    class: CORE
+    status: active
+    role: source-of-truth
+
+  github-codespaces:
+    class: RECOMMENDED
+    status: planned
+    role: temporary-browser-development
+
+  mk-devcloud:
+    class: CORE-ARCHITECTURE
+    status: planned
+    role: persistent-development-environment
+
+  tailscale:
+    class: CORE-DEV-CLOUD
+    status: planned
+    role: private-network-access
+
+  tmux:
+    class: CORE-DEV-CLOUD
+    status: planned
+    role: persistent-terminal-sessions
+
+  production:
+    class: ISOLATED
+    status: external
+    rule: never-share-devcloud-control-plane
+
+principles:
+  github_is_source_of_truth: true
+  workstation_is_disposable_client: true
+  devcloud_is_rebuildable: true
+  production_is_separate: true

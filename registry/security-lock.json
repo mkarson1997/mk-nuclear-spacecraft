@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "platform": "windows-amd64",
+  "reviewed_at": "2026-08-08",
+  "bootstrap": {
+    "pipx": {
+      "class": "BOOTSTRAP",
+      "source": "pypi",
+      "package": "pipx",
+      "version": "1.15.0"
+    }
+  },
+  "tools": {
+    "gitleaks": {
+      "class": "CORE",
+      "source": "github-release",
+      "repository": "gitleaks/gitleaks",
+      "version": "8.30.1",
+      "tag": "v8.30.1",
+      "asset": "gitleaks_8.30.1_windows_x64.zip",
+      "sha256": "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e",
+      "executable": "gitleaks.exe"
+    },
+    "trivy": {
+      "class": "CORE",
+      "source": "github-release",
+      "repository": "aquasecurity/trivy",
+      "version": "0.73.0",
+      "tag": "v0.73.0",
+      "asset": "trivy_0.73.0_windows-64bit.zip",
+      "sha256": "d2d3ad5292aae470a03eb6506db86fce81b1894592b8451cadaf60eaa22f2025",
+      "executable": "trivy.exe",
+      "sigstore_asset": "trivy_0.73.0_windows-64bit.zip.sigstore.json"
+    },
+    "semgrep": {
+      "class": "CORE",
+      "source": "pypi",
+      "package": "semgrep",
+      "version": "1.172.0",
+      "installer": "pipx",
+      "preferred_python": "3.11"
+    },
+    "zizmor": {
+      "class": "CORE",
+      "source": "pypi",
+      "package": "zizmor",
+      "version": "1.29.0",
+      "installer": "pipx",
+      "preferred_python": "3.11"
+    }
+  }
+}

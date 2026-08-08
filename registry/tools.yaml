@@ -1,0 +1,91 @@
+schema: 1
+
+policy:
+  default_for_unknown_tools: quarantine
+  require_known_source: true
+  require_license_review: true
+  require_permission_review: true
+  require_network_review: true
+  require_maintenance_review: true
+  prohibit_blind_install: true
+
+tools:
+
+  - id: git
+    class: CORE
+    status: installed
+    purpose: version-control
+
+  - id: github-cli
+    class: CORE
+    status: installed
+    purpose: github-control-plane
+
+  - id: claude-code
+    class: CORE
+    status: installed
+    role: lead-engineering
+
+  - id: codex-cli
+    class: CORE
+    status: installed
+    role: implementation-review
+
+  - id: antigravity-cli
+    class: RECOMMENDED
+    status: installed
+    role: orchestration-alternate-agent
+
+  - id: opencode
+    class: RECOMMENDED
+    status: installed
+    role: flexible-worker-router
+
+  - id: grok-cli
+    class: OPTIONAL
+    status: installed
+    role: independent-review-research
+
+  - id: aider
+    class: OPTIONAL
+    status: installed
+    role: lightweight-git-worker
+
+  - id: gitleaks
+    class: CORE
+    status: installed-pinned
+    version: 8.30.1
+    purpose: secret-scanning
+
+  - id: trivy
+    class: CORE
+    status: installed-pinned
+    version: 0.73.0
+    purpose: vulnerability-misconfiguration-sbom-scanning
+
+  - id: semgrep
+    class: CORE
+    status: installed-pinned
+    version: 1.172.0
+    purpose: sast
+
+  - id: zizmor
+    class: CORE
+    status: installed-pinned
+    version: 1.29.0
+    purpose: github-actions-security
+
+  - id: zap
+    class: RECOMMENDED
+    status: later
+    purpose: staging-dast
+
+  - id: osv-scanner
+    class: RECOMMENDED
+    status: later
+    purpose: dependency-vulnerability-second-opinion
+
+  - id: ruflo
+    class: NUCLEAR
+    status: later
+    purpose: large-scale-agent-orchestration

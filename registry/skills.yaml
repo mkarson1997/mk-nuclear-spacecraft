@@ -1,0 +1,67 @@
+schema: 1
+
+canonical_root: skills/canonical
+
+policy:
+  unknown_skill: quarantine
+  one_canonical_source: true
+  review_scripts: true
+  review_network_access: true
+  review_secret_access: true
+  review_external_downloads: true
+  prohibit_blind_marketplace_install: true
+
+core:
+  - git-safe-workflow
+  - github-pr-lifecycle
+  - repo-audit
+  - architecture-audit
+  - secure-code-review
+  - secret-handling
+  - dependency-audit
+  - api-security-review
+  - auth-session-review
+  - database-migration-safety
+  - test-strategy
+  - release-readiness
+  - incident-debugging
+  - production-change-safety
+  - documentation-handoff
+
+web:
+  - nextjs-review
+  - react-review
+  - web-accessibility
+  - web-performance
+  - playwright-e2e
+  - security-headers
+  - csp-review
+
+mobile:
+  - flutter-architecture
+  - flutter-test
+  - flutter-release
+  - android-security
+  - android-signing
+  - play-store-release
+  - mobile-api-security
+  - mobile-permissions-review
+
+infrastructure:
+  - docker-review
+  - docker-security
+  - github-actions-review
+  - deployment-review
+  - postgres-review
+  - supabase-review
+  - cloudflare-review
+  - backup-restore
+
+nuclear:
+  - threat-model
+  - red-team-review
+  - attack-surface-map
+  - supply-chain-forensics
+  - incident-response
+  - production-security-audit
+  - mcp-security-audit

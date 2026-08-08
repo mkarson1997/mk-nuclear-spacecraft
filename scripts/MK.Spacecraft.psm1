@@ -11,6 +11,10 @@ function Get-MKBranch {
     return (git branch --show-current).Trim()
 }
 
+function Get-MKSpacecraftRoot {
+    return (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+}
+
 function mk-status {
     Assert-MKGitRepo
 
@@ -86,6 +90,28 @@ function mk-start-task {
     Write-Host "`n[MK] Task started safely: $branch" -ForegroundColor Green
 }
 
+function mk-security {
+    param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [ValidateSet('quick','full','nuclear')]
+        [string]$Mode
+    )
+
+    Assert-MKGitRepo
+
+    $spacecraftRoot = Get-MKSpacecraftRoot
+    $runner = Join-Path $spacecraftRoot 'scripts\security\run-security.ps1'
+    if (-not (Test-Path $runner)) {
+        throw "Security runner not found: $runner"
+    }
+
+    $repositoryRoot = (git rev-parse --show-toplevel).Trim()
+    & $runner -Mode $Mode -RepositoryRoot $repositoryRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw "mk-security $Mode failed."
+    }
+}
+
 function mk-checkpoint {
     param(
         [Parameter(Mandatory=$true, Position=0)]
@@ -137,6 +163,21 @@ function mk-checkpoint {
         throw 'Checkpoint blocked: staged diff contains text resembling a credential or private key.'
     }
 
+    $spacecraftRoot = Get-MKSpacecraftRoot
+    $secretGate = Join-Path $spacecraftRoot 'scripts\security\check-staged-secrets.ps1'
+    if (Test-Path $secretGate) {
+        try {
+            & $secretGate -RepositoryRoot $root
+            if ($LASTEXITCODE -ne 0) {
+                throw 'Staged Gitleaks gate failed.'
+            }
+        }
+        catch {
+            git reset --quiet
+            throw
+        }
+    }
+
     git diff --cached --check
     if ($LASTEXITCODE -ne 0) {
         git reset --quiet
@@ -153,4 +194,4 @@ function mk-checkpoint {
     git log -1 --oneline
 }
 
-Export-ModuleMember -Function mk-status, mk-start-task, mk-checkpoint
+Export-ModuleMember -Function mk-status, mk-start-task, mk-security, mk-checkpoint
