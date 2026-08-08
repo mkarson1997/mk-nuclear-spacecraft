@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "policy_version": "1.0.0",
+  "status": "qualification-only",
+  "platform": "linux-amd64",
+  "project_writer_execution_enabled": false,
+  "writer_qualification_enabled": false,
+  "execution_model": "separate-principal-disposable",
+  "supervisor": {
+    "required_uid": 0,
+    "owns_control_plane": true,
+    "control_root": "/opt/mk-spacecraft/runtime",
+    "state_root": "/var/lib/mk-spacecraft",
+    "materialize_from_verified_commit": true,
+    "copy_from_live_worktree": false
+  },
+  "writer": {
+    "user": "mk-writer",
+    "must_not_be_root": true,
+    "must_not_have_sudo": true,
+    "must_not_own_control_plane": true,
+    "disposable_home": true,
+    "disposable_tmp": true,
+    "production_access": false,
+    "allow_commit": false,
+    "allow_push": false,
+    "allowed_qualification_paths": [
+      "qualification/agent-canary/writer-output.txt"
+    ]
+  },
+  "filesystem": {
+    "source_owned_by_supervisor": true,
+    "git_admin_owned_by_supervisor": true,
+    "writer_may_not_write_git_admin": true,
+    "writer_may_not_create_sibling_paths": true,
+    "only_existing_allowlisted_files_writable": true,
+    "reject_symlink_targets": true,
+    "reject_hardlinked_targets": true,
+    "parent_directories_not_writer_writable": true
+  },
+  "git": {
+    "disposable_repository": true,
+    "remote_removed_before_writer": true,
+    "checkout_detached": true,
+    "source_commit_must_be_verified": true
+  },
+  "codex": {
+    "engine": "codex-cli",
+    "role": "implementer",
+    "sandbox_mode": "workspace-write",
+    "shell_network_access": false,
+    "ephemeral_session": true,
+    "ignore_user_config": true,
+    "ignore_rules": true,
+    "strict_config": true,
+    "disable_plugins": true,
+    "disable_apps": true,
+    "disable_remote_plugins": true,
+    "disable_web_search": true,
+    "shell_environment_inherit": "none"
+  },
+  "cleanup": {
+    "destroy_disposable_home": true,
+    "destroy_disposable_tmp": true,
+    "destroy_disposable_repository": true,
+    "block_on_residue": true
+  },
+  "qualification": {
+    "expected_content": "MK_WRITER_CANARY_OK",
+    "boundary_test_required": true,
+    "first_real_writer_canary_requires_boundary_gate": true,
+    "required_ci_check": "writer-isolation-gate"
+  }
+}

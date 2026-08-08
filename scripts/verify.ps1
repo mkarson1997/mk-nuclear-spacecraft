@@ -14,6 +14,7 @@ $requiredFiles = @(
     'registry/agents.yaml',
     'registry/agent-fleet.json',
     'registry/agent-execution-policy.json',
+    'registry/writer-isolation-v1.json',
     'registry/services.yaml',
     'registry/security-lock.json',
     'policies/security/BASELINE.md',
@@ -26,9 +27,11 @@ $requiredFiles = @(
     'scripts/agents/agent-launcher.ps1',
     'scripts/agents/writer-runtime.ps1',
     'scripts/runtime/trusted-runtime.ps1',
+    'scripts/isolation/linux/qualification-boundary-test.sh',
     'scripts/security/run-security.ps1',
     'scripts/security/check-staged-secrets.ps1',
-    'scripts/security/install-security-tools.ps1'
+    'scripts/security/install-security-tools.ps1',
+    '.github/workflows/writer-isolation-gate.yml'
 )
 
 Write-Host "`n=== MK VERIFY ===" -ForegroundColor Cyan
@@ -228,7 +231,111 @@ foreach ($marker in @('Trusted runtime hash mismatch','Writer branch does not ma
         throw "Writer runtime preflight is missing required fail-closed marker: $marker"
     }
 }
-Write-Host '[OK] Trusted writer runtime policy, integrity gates, and canary boundaries validated.' -ForegroundColor Green
+Write-Host '[OK] Existing Windows trusted writer foundation remains fail-closed.' -ForegroundColor Green
+
+$isolationPath = Join-Path $root 'registry/writer-isolation-v1.json'
+$isolation = Get-Content $isolationPath -Raw | ConvertFrom-Json
+if ($isolation.schema -ne 1 -or $isolation.policy_version -ne '1.0.0') {
+    throw 'Writer Isolation v1 policy schema/version is invalid.'
+}
+if ($isolation.status -ne 'qualification-only' -or $isolation.platform -ne 'linux-amd64') {
+    throw 'Writer Isolation v1 must remain Linux qualification-only.'
+}
+if ($isolation.project_writer_execution_enabled -ne $false -or $isolation.writer_qualification_enabled -ne $false) {
+    throw 'Writer Isolation v1 may not enable project execution or real writer qualification yet.'
+}
+if ($isolation.execution_model -ne 'separate-principal-disposable') {
+    throw 'Writer Isolation v1 must use a separate-principal disposable execution model.'
+}
+if ($isolation.supervisor.required_uid -ne 0 -or
+    $isolation.supervisor.owns_control_plane -ne $true -or
+    $isolation.supervisor.materialize_from_verified_commit -ne $true -or
+    $isolation.supervisor.copy_from_live_worktree -ne $false) {
+    throw 'Writer Isolation v1 supervisor trust boundary is incomplete.'
+}
+if ($isolation.writer.must_not_be_root -ne $true -or
+    $isolation.writer.must_not_have_sudo -ne $true -or
+    $isolation.writer.must_not_own_control_plane -ne $true -or
+    $isolation.writer.production_access -ne $false -or
+    $isolation.writer.allow_commit -ne $false -or
+    $isolation.writer.allow_push -ne $false) {
+    throw 'Writer Isolation v1 writer principal restrictions are incomplete.'
+}
+$isolationAllowedPaths = @($isolation.writer.allowed_qualification_paths)
+if ($isolationAllowedPaths.Count -ne 1 -or $isolationAllowedPaths[0] -ne 'qualification/agent-canary/writer-output.txt') {
+    throw 'Writer Isolation v1 must allow exactly the canary output path.'
+}
+if ($isolation.filesystem.git_admin_owned_by_supervisor -ne $true -or
+    $isolation.filesystem.writer_may_not_write_git_admin -ne $true -or
+    $isolation.filesystem.writer_may_not_create_sibling_paths -ne $true -or
+    $isolation.filesystem.only_existing_allowlisted_files_writable -ne $true -or
+    $isolation.filesystem.parent_directories_not_writer_writable -ne $true) {
+    throw 'Writer Isolation v1 filesystem prevention controls are incomplete.'
+}
+if ($isolation.git.disposable_repository -ne $true -or
+    $isolation.git.remote_removed_before_writer -ne $true -or
+    $isolation.git.checkout_detached -ne $true -or
+    $isolation.git.source_commit_must_be_verified -ne $true) {
+    throw 'Writer Isolation v1 Git isolation controls are incomplete.'
+}
+if ($isolation.codex.engine -ne 'codex-cli' -or
+    $isolation.codex.role -ne 'implementer' -or
+    $isolation.codex.sandbox_mode -ne 'workspace-write' -or
+    $isolation.codex.shell_network_access -ne $false -or
+    $isolation.codex.ephemeral_session -ne $true -or
+    $isolation.codex.ignore_user_config -ne $true -or
+    $isolation.codex.ignore_rules -ne $true -or
+    $isolation.codex.strict_config -ne $true -or
+    $isolation.codex.disable_plugins -ne $true -or
+    $isolation.codex.shell_environment_inherit -ne 'none') {
+    throw 'Writer Isolation v1 Codex qualification contract is incomplete.'
+}
+if ($isolation.cleanup.block_on_residue -ne $true -or
+    $isolation.cleanup.destroy_disposable_home -ne $true -or
+    $isolation.cleanup.destroy_disposable_tmp -ne $true -or
+    $isolation.cleanup.destroy_disposable_repository -ne $true) {
+    throw 'Writer Isolation v1 cleanup contract is incomplete.'
+}
+if ($isolation.qualification.required_ci_check -ne 'writer-isolation-gate' -or
+    $isolation.qualification.boundary_test_required -ne $true -or
+    $isolation.qualification.first_real_writer_canary_requires_boundary_gate -ne $true) {
+    throw 'Writer Isolation v1 qualification gate is incomplete.'
+}
+
+$boundarySource = Get-Content (Join-Path $root 'scripts/isolation/linux/qualification-boundary-test.sh') -Raw
+foreach ($marker in @(
+    'id -u',
+    'useradd --system',
+    'runuser -u',
+    'chown -R root:root',
+    'chmod -R a-w',
+    'Exact canary file write allowed',
+    'Sibling file creation',
+    'Git config mutation',
+    'Control-plane mutation',
+    'Git staging',
+    'Privilege escalation through sudo',
+    'Writer Isolation v1 adversarial boundary held'
+)) {
+    if ($boundarySource -notmatch [regex]::Escape($marker)) {
+        throw "Writer Isolation v1 boundary test is missing required marker: $marker"
+    }
+}
+
+$workflowSource = Get-Content (Join-Path $root '.github/workflows/writer-isolation-gate.yml') -Raw
+foreach ($marker in @(
+    'writer-isolation-gate',
+    'runs-on: ubuntu-latest',
+    'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0',
+    'persist-credentials: false',
+    'bash -n scripts/isolation/linux/qualification-boundary-test.sh',
+    'sudo bash scripts/isolation/linux/qualification-boundary-test.sh'
+)) {
+    if ($workflowSource -notmatch [regex]::Escape($marker)) {
+        throw "Writer Isolation v1 workflow is missing required marker: $marker"
+    }
+}
+Write-Host '[OK] Writer Isolation v1 separate-principal Linux boundary is statically validated.' -ForegroundColor Green
 
 git diff --check
 if ($LASTEXITCODE -ne 0) {

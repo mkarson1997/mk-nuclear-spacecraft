@@ -1,0 +1,66 @@
+name: Writer Isolation Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: writer-isolation-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  writer-isolation-gate:
+    name: writer-isolation-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/isolation/linux/qualification-boundary-test.sh
+
+      - name: Validate isolation policy JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = json.loads(Path('registry/writer-isolation-v1.json').read_text())
+          assert p['schema'] == 1
+          assert p['policy_version'] == '1.0.0'
+          assert p['platform'] == 'linux-amd64'
+          assert p['project_writer_execution_enabled'] is False
+          assert p['writer_qualification_enabled'] is False
+          assert p['execution_model'] == 'separate-principal-disposable'
+          assert p['supervisor']['required_uid'] == 0
+          assert p['writer']['must_not_be_root'] is True
+          assert p['writer']['must_not_have_sudo'] is True
+          assert p['writer']['allow_commit'] is False
+          assert p['writer']['allow_push'] is False
+          assert p['writer']['production_access'] is False
+          assert p['writer']['allowed_qualification_paths'] == ['qualification/agent-canary/writer-output.txt']
+          assert p['filesystem']['git_admin_owned_by_supervisor'] is True
+          assert p['filesystem']['only_existing_allowlisted_files_writable'] is True
+          assert p['qualification']['required_ci_check'] == 'writer-isolation-gate'
+          print('[PASS] Writer Isolation v1 policy validated.')
+          PY
+
+      - name: Run adversarial principal boundary test
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo bash scripts/isolation/linux/qualification-boundary-test.sh
