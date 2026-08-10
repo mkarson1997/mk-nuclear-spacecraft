@@ -37,6 +37,15 @@ implemented_core_v1:
   - release-readiness
   - production-change-safety
 
+implemented_core_v2:
+  - architecture-audit
+  - secret-handling
+  - database-migration-safety
+  - incident-debugging
+  - documentation-handoff
+
+implemented_core_total: 15
+
 core:
   - git-safe-workflow
   - github-pr-lifecycle
