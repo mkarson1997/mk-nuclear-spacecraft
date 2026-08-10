@@ -10,6 +10,32 @@ policy:
   review_secret_access: true
   review_external_downloads: true
   prohibit_blind_marketplace_install: true
+  generated_client_trees_are_disposable: true
+  manual_edits_to_generated_trees: forbidden
+
+publication:
+  status: disabled-pending-trusted-runtime
+  reason: publisher-must-run-from-independently-trusted-control-plane
+  source_of_truth: reviewed-main-git-objects
+  local_worktree_publisher_allowed: false
+  generated_targets:
+    claude: .claude/skills
+    codex: .codex/skills
+    agents: .agents/skills
+    opencode: .opencode/skills
+    antigravity: .agent/skills
+
+implemented_core_v1:
+  - git-safe-workflow
+  - github-pr-lifecycle
+  - repo-audit
+  - secure-code-review
+  - dependency-audit
+  - api-security-review
+  - auth-session-review
+  - test-strategy
+  - release-readiness
+  - production-change-safety
 
 core:
   - git-safe-workflow
