@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "policy_version": "1.2.0",
+  "status": "preflight-only",
+  "platform": "linux-amd64",
+  "project_writer_execution_enabled": false,
+  "real_writer_canary_enabled": false,
+  "requires": {
+    "writer_isolation_policy": "registry/writer-isolation-v1.json",
+    "codex_lock": "registry/codex-linux-lock.json",
+    "required_main_checks": [
+      "security-gate",
+      "writer-isolation-gate",
+      "writer-qualification-gate"
+    ]
+  },
+  "supply_chain": {
+    "mutable_latest_forbidden": true,
+    "download_exact_release_only": true,
+    "archive_sha256_required": true,
+    "checksum_manifest_sha256_required": true,
+    "dual_publisher_metadata_digest_required": true,
+    "installer_script_pipe_forbidden": true,
+    "runtime_root_owned_by_supervisor": true,
+    "downloaded_code_must_not_execute_as_root": true,
+    "full_runtime_tree_manifest_required": true,
+    "atomic_no_target_directory_publish": true
+  },
+  "credential_boundary": {
+    "status": "not-yet-qualified",
+    "strategy": "separate-controller-from-writer",
+    "writer_must_not_read_codex_auth_storage": true,
+    "writer_must_not_receive_openai_api_key": true,
+    "writer_must_not_receive_codex_api_key": true,
+    "writer_must_not_receive_codex_access_token": true,
+    "writer_must_not_receive_github_token": true,
+    "writer_must_not_receive_ssh_agent": true,
+    "concurrent_controller_required": true,
+    "private_pid_namespace": true,
+    "private_network_namespace": true,
+    "private_ipc_namespace": true,
+    "controller_open_descriptors_must_be_hidden": true,
+    "controller_socket_must_be_unreachable": true,
+    "first_real_canary_blocked_until_credential_boundary_passes": true
+  },
+  "writer_environment": {
+    "principal": "mk-writer",
+    "sandbox_runner": "scripts/isolation/linux/writer-sandbox-exec.sh",
+    "must_not_be_root": true,
+    "must_not_have_sudo": true,
+    "home_disposable": true,
+    "tmp_disposable": true,
+    "private_host_tmp": true,
+    "private_dev_shm": true,
+    "root_filesystem_read_only": true,
+    "inherited_mounts_read_only_recursive": true,
+    "sandbox_fails_if_recursive_mount_attributes_unavailable": true,
+    "capabilities_dropped": true,
+    "no_new_privileges": true,
+    "shell_environment_inherit": "none",
+    "tool_network_access": false,
+    "production_access": false,
+    "allow_commit": false,
+    "allow_push": false
+  },
+  "canary": {
+    "allowed_path": "qualification/agent-canary/writer-output.txt",
+    "expected_content": "MK_WRITER_CANARY_OK",
+    "disposable_repository": true,
+    "git_admin_supervisor_owned": true,
+    "remote_removed_before_writer": true,
+    "parent_directories_not_writer_writable": true,
+    "exact_existing_file_only": true,
+    "composed_fake_end_to_end_required_before_real_canary": true
+  },
+  "merge_controls": {
+    "qualification_gate_must_be_required": true,
+    "required_check_app_binding_must_be_verified_live": true,
+    "required_check_integration_id": 15368,
+    "committed_ruleset_must_preserve_app_binding": true,
+    "security_control_approval_gate_status": "activation-required-not-preflight-merge-required",
+    "preflight_merge_blocked_until_live_controls_match": true
+  },
+  "activation": {
+    "requires_supply_chain_gate": true,
+    "requires_credential_boundary_gate": true,
+    "requires_composed_fake_end_to_end_gate": true,
+    "requires_independent_review": true,
+    "requires_zero_critical_high_blockers": true,
+    "requires_explicit_qualification_flag": true,
+    "project_execution_must_remain_disabled": true
+  }
+}

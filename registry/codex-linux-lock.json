@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "lock_version": "1.1.0",
+  "platform": "linux-amd64",
+  "architecture": "x86_64",
+  "codex_version": "0.146.0",
+  "expected_version_output": "codex-cli 0.146.0",
+  "release_tag": "rust-v0.146.0",
+  "publisher_metadata": {
+    "openai_release_url": "https://releases.openai.com/codex/releases/0.146.0/release.json",
+    "github_release_api_url": "https://api.github.com/repos/openai/codex/releases/tags/rust-v0.146.0",
+    "require_both_sources": true,
+    "require_asset_digest_match": true
+  },
+  "release_page": "https://github.com/openai/codex/releases/tag/rust-v0.146.0",
+  "package": {
+    "asset": "codex-package-x86_64-unknown-linux-musl.tar.gz",
+    "url": "https://releases.openai.com/codex/releases/0.146.0/codex-package-x86_64-unknown-linux-musl.tar.gz",
+    "sha256": "3c89125af1d7c98abec8beb551292ef99daca52e204e5852a9139feae2c467e5"
+  },
+  "checksum_manifest": {
+    "asset": "codex-package_SHA256SUMS",
+    "url": "https://releases.openai.com/codex/releases/0.146.0/codex-package_SHA256SUMS",
+    "sha256": "e6b6a3f937c9cab532f25cca6d81529b44f122f028182b9715038bf15f94b105"
+  },
+  "installation": {
+    "root": "/opt/mk-spacecraft/runtime/codex/0.146.0",
+    "entrypoint": "bin/codex",
+    "owner": "root",
+    "group": "root",
+    "mutable_latest_forbidden": true,
+    "verify_archive_before_extract": true,
+    "verify_version_only_as_unprivileged_probe": true,
+    "publish_no_target_directory": true,
+    "full_tree_manifest_required": true
+  }
+}
