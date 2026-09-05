@@ -1,0 +1,37 @@
+title = "MK Nuclear Spacecraft Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+# These allowlists are intentionally narrow. They suppress historical scanner
+# false positives only for deterministic test fixtures, Git object IDs, and a
+# regular expression that validates PEM framing. They do not allow arbitrary
+# secrets by path or by rule.
+
+[[allowlists]]
+description = "Deterministic webhook self-test fixture"
+condition = "AND"
+regexTarget = "match"
+paths = ['''^scripts/trust/publisher_controller\.py$''']
+regexes = ['''fixture-only-secret''']
+
+[[allowlists]]
+description = "Canonical Git blob SHA-1 constants used by posture reporting"
+condition = "AND"
+regexTarget = "match"
+paths = ['''^scripts/observability/posture_report\.py$''']
+regexes = ['''[0-9a-f]{40}''']
+
+[[allowlists]]
+description = "PEM framing validation regex, not embedded key material"
+condition = "AND"
+regexTarget = "match"
+paths = ['''^cloudflare/trusted-controller/src/protocol\.mjs$''']
+regexes = ['''BEGIN PRIVATE KEY''']
+
+[[allowlists]]
+description = "Deterministic self-test webhook delivery-id fixture"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^scripts/trust/publisher_controller\.py$''']
+regexes = ['''verify_webhook\(body, signature, secret, ''']

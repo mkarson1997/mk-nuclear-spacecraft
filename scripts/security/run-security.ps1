@@ -58,6 +58,11 @@ $gitleaks = Resolve-MKSecurityTool -Name 'gitleaks'
 $trivy = Resolve-MKSecurityTool -Name 'trivy'
 $semgrep = Resolve-MKSecurityTool -Name 'semgrep'
 $zizmor = Resolve-MKSecurityTool -Name 'zizmor'
+$gitleaksConfig = Join-Path $RepositoryRoot '.gitleaks.toml'
+
+if (-not (Test-Path $gitleaksConfig)) {
+    throw "Gitleaks configuration is missing: $gitleaksConfig"
+}
 
 Write-Host "`n=== MK SECURITY: $($Mode.ToUpperInvariant()) ===" -ForegroundColor Magenta
 Write-Host "Repository : $RepositoryRoot"
@@ -70,7 +75,7 @@ try {
     }
 
     Invoke-MKStep -Name 'Gitleaks working-tree scan' -Action {
-        & $gitleaks dir $RepositoryRoot --no-banner --redact=100 --report-format json --report-path (Join-Path $reportRoot 'gitleaks-working-tree.json')
+        & $gitleaks dir $RepositoryRoot --config $gitleaksConfig --no-banner --redact=100 --report-format json --report-path (Join-Path $reportRoot 'gitleaks-working-tree.json')
     }
 
     if ($Mode -eq 'quick') {
@@ -106,7 +111,7 @@ try {
     }
 
     Invoke-MKStep -Name 'Gitleaks full Git-history scan' -Action {
-        & $gitleaks git $RepositoryRoot --no-banner --redact=100 --report-format json --report-path (Join-Path $reportRoot 'gitleaks-history.json')
+        & $gitleaks git $RepositoryRoot --config $gitleaksConfig --no-banner --redact=100 --report-format json --report-path (Join-Path $reportRoot 'gitleaks-history.json')
     }
 
     Invoke-MKStep -Name 'CycloneDX SBOM generation' -Action {

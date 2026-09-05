@@ -52,11 +52,11 @@ entry=pathlib.PurePosixPath(lock['installation']['entrypoint'])
 assert not entry.is_absolute() and entry.parts and all(x not in ('', '.', '..') for x in entry.parts)
 
 assert policy['schema'] == 1
-assert policy['policy_version'] == '1.2.0'
+assert policy['policy_version'] == '1.3.0'
 assert policy['status'] == 'preflight-only'
 assert policy['project_writer_execution_enabled'] is False
 assert policy['real_writer_canary_enabled'] is False
-assert policy['requires']['required_main_checks'] == ['security-gate','writer-isolation-gate','writer-qualification-gate']
+assert policy['requires']['required_main_checks'] == ['security-gate','spacecraft-trust-gate','writer-isolation-gate','writer-qualification-gate']
 assert policy['credential_boundary']['status'] == 'not-yet-qualified'
 assert policy['credential_boundary']['strategy'] == 'separate-controller-from-writer'
 assert policy['credential_boundary']['writer_must_not_read_codex_auth_storage'] is True
@@ -95,6 +95,7 @@ for rule in ruleset['rules']:
         checks.extend((x['context'], x.get('integration_id')) for x in rule['parameters']['required_status_checks'])
 assert sorted(checks) == [
     ('security-gate', 15368),
+    ('spacecraft-trust-gate', 4571234),
     ('writer-isolation-gate', 15368),
     ('writer-qualification-gate', 15368),
 ]
@@ -124,7 +125,7 @@ if ! grep -Fq 'Composed fake end-to-end writer qualification held' "$COMPOSED_TE
 
 echo '[PASS] Writer Qualification v1 remains preflight-only.'
 echo '[PASS] Codex lock has exact version, path, dual publisher digest and immutable-tree requirements.'
-echo '[PASS] GitHub policy model preserves three GitHub Actions app-bound required checks.'
+echo '[PASS] GitHub policy model preserves four app-bound required checks: three from GitHub Actions and the operator-approved trust gate.'
 echo '[PASS] Controller/writer policy requires private PID/network/IPC namespaces and the reusable sandbox runner.'
 echo '[PASS] Writer sandbox recursively freezes inherited mounts with mount_setattr and tests an adversarial writable nested submount.'
 echo '[PASS] Exact-file-only writable exception and composed fake end-to-end canary are statically required.'

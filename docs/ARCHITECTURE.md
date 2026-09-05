@@ -72,9 +72,15 @@ Packaged or imported skills should include provenance and public-release notes w
 
 `cloud-workspace/` is an organizational boundary for workspace patterns and future integrations. It must not contain operator credentials, private runtime state, or production secrets.
 
-### GitHub Actions
+### Verification gates
 
-The repository currently uses dedicated gates for security, writer isolation, writer qualification, and app-factory validation. `main` is protected by repository rules and accepts changes through reviewed pull requests with required checks.
+`main` is protected by the `Protect main` repository ruleset (mirrored for reference in [`policies/github/main-ruleset.json`](../policies/github/main-ruleset.json)): linear history, no deletion, no force-push, squash-only merges through pull requests, and required status checks.
+
+Four GitHub Actions workflows in `.github/workflows/` publish `security-gate`, `writer-isolation-gate`, `writer-qualification-gate`, and `app-factory-gate`. The first three are required by the ruleset; `app-factory-gate` runs but is advisory.
+
+A fifth required check, `spacecraft-trust-gate`, is **not** produced by a workflow in this repository. It is published by a separate GitHub App (`MK Spacecraft Trusted Publisher`) that verifies the webhook signature, re-reads the pull request head before and after evaluating it, and refuses to publish a verdict unless a human operator has submitted a signed approval bound to that exact head commit. Approvals are short-lived and single-use.
+
+That controller's source and the operator approval tooling are maintainer-side components and are deliberately **not** part of `main`; they are tracked separately on the `release/mk-spacecraft-final-v1` branch. The practical consequence is that no change reaches `main` without both the automated gates passing and a fresh human operator signature, and that outside contributors cannot self-approve a merge.
 
 ## Trust boundaries
 

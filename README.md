@@ -86,7 +86,8 @@ The repository has evidence for:
 - isolated Git worktree lifecycle and path containment;
 - writer engine/role authorization and ownership leases;
 - trusted-runtime integrity/preflight foundations;
-- security, writer-isolation, writer-qualification, and App Factory CI gates.
+- security, writer-isolation, writer-qualification, and App Factory CI gates;
+- a required `spacecraft-trust-gate` check that only reports success after a human operator signs an approval bound to the exact commit being merged.
 
 **Project-changing autonomous writer execution remains disabled by policy** until the remaining trusted-runtime installation, controlled writer canary, independent review, and orchestration qualification steps pass.
 
@@ -109,6 +110,7 @@ See [`agents/FLEET.md`](agents/FLEET.md) for the qualification sequence.
 | `plugins/` | reviewed plugin boundary |
 | `cloud-workspace/` | workspace patterns without operator secrets |
 | `.github/workflows/` | CI trust and qualification gates |
+| `policies/github/` | reference copy of the enforced `main` branch ruleset |
 
 ## Open-source boundary
 

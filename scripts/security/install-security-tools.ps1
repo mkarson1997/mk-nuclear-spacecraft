@@ -17,6 +17,15 @@ $cacheDir = Join-Path $mkHome 'cache\security-tools'
 New-Item -ItemType Directory -Path $binDir -Force | Out-Null
 New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null
 
+# pipx is a Python application and can inherit legacy Windows console encodings
+# such as CP1252. Some normal pipx output contains Unicode symbols, so force
+# UTF-8 for child Python processes to keep installs deterministic across shells.
+if ($IsWindows) {
+    $env:PYTHONUTF8 = '1'
+    $env:PYTHONIOENCODING = 'utf-8'
+    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+}
+
 function Assert-Command {
     param([Parameter(Mandatory=$true)][string]$Name)
     if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {

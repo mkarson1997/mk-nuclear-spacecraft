@@ -82,7 +82,7 @@ jobs:
           import json
           from pathlib import Path
           p=json.loads(Path('registry/writer-qualification-v1.json').read_text())
-          assert p['policy_version'] == '1.2.0'
+          assert p['policy_version'] == '1.3.0'
           assert p['project_writer_execution_enabled'] is False
           assert p['real_writer_canary_enabled'] is False
           assert p['credential_boundary']['status'] == 'not-yet-qualified'
