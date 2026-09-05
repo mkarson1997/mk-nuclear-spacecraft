@@ -7,6 +7,12 @@ useDefault = true
 # false positives only for deterministic test fixtures, Git object IDs, and a
 # regular expression that validates PEM framing. They do not allow arbitrary
 # secrets by path or by rule.
+#
+# None of the paths below exist in this repository. They are retained because
+# each entry is path-locked to a file that only ever existed in the private
+# maintainer history this repository was published from, and a full-history
+# scan of that history is what the entries were reviewed against. Here they
+# match nothing.
 
 [[allowlists]]
 description = "Deterministic webhook self-test fixture"
